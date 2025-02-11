@@ -6,6 +6,13 @@ using TypeSpec.Http;
 
 namespace AzureAgFoodPlatformDataPlaneService;
 
+@resource("catalog1")
+model Catalog1 {
+  @doc("Id")
+  @key
+  id: string;
+}
+
 /**
  * Type of relationship.
  */

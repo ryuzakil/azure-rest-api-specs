@@ -4,10 +4,21 @@ import "./models.tsp";
 
 using TypeSpec.Rest;
 using TypeSpec.Http;
+using Azure.Core;
+using Azure.Core.Traits;
 
 namespace AzureAgFoodPlatformDataPlaneService;
 
+alias ServiceTraits = SupportsRepeatableRequests &
+  SupportsConditionalRequests &
+  SupportsClientRequestId;
+
+alias Operations = Azure.Core.ResourceOperations<ServiceTraits>;
+
 interface CatalogsOperations {
+  @doc("Catalog")
+  list1 is Operations.ResourceList<Catalog1>;
+
   /**
    * Returns a paginated list of Catalog resources.
    */
