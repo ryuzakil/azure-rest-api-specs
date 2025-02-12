@@ -9,13 +9,189 @@ namespace AzureAgFoodPlatformDataPlaneService;
 @resource("catalog1")
 model Catalog1 {
   @doc("Id")
+  links?: Link[];
+
+  /**
+   * Unique resource ID.
+   */
   @key
-  id: string;
+  @visibility("read")
+  catalogid: string;
+
+  /**
+   * The ETag value to implement optimistic concurrency.
+   */
+  @visibility("read")
+  eTag?: string;
+
+  /**
+   * Status of the resource.
+   */
+  @maxLength(100)
+  status?: string;
+
+  /**
+   * Date-time when resource was created, sample format: yyyy-MM-ddTHH:mm:ssZ.
+   */
+  @visibility("read")
+  // FIXME: (utcDateTime) Please double check that this is the correct type for your scenario.
+  createdDateTime?: utcDateTime;
+
+  /**
+   * Date-time when resource was last modified, sample format: yyyy-MM-ddTHH:mm:ssZ.
+   */
+  @visibility("read")
+  // FIXME: (utcDateTime) Please double check that this is the correct type for your scenario.
+  modifiedDateTime?: utcDateTime;
+
+  /**
+   * Source of the resource.
+   */
+  @maxLength(100)
+  @minLength(2)
+  source?: string;
+
+  /**
+   * Name to identify resource.
+   */
+  @maxLength(100)
+  name?: string;
+
+  /**
+   * Textual description of the resource.
+   */
+  @maxLength(500)
+  description?: string;
+
+  /**
+   * Created by user/tenant id.
+   */
+  @visibility("read")
+  createdBy?: string;
+
+  /**
+   * Modified by user/tenant id.
+   */
+  @visibility("read")
+  modifiedBy?: string;
+
+  /**
+   * A collection of key value pairs that belongs to the resource.
+   * Each pair must not have a key greater than 50 characters
+   * and must not have a value greater than 150 characters.
+   * Note: A maximum of 25 key value pairs can be provided for a resource and only
+   * string,
+   * numeral and datetime (yyyy-MM-ddTHH:mm:ssZ) values are supported.
+   */
+  properties?: Record<unknown>;
 }
 
+@resource("collection1")
+@parentResource(Catalog1)
+model Collection1 {
+  /**
+   * Schema Foreign Key.
+   */
+  @minLength(1)
+  schemaId: string;
+
+  /**
+   * CatalogId.
+   */
+  @visibility("read")
+  catalogId: string;
+
+  /**
+   * Links for referencing other objects.
+   */
+  links?: Link[];
+
+  /**
+   * Unique resource ID.
+   */
+  @key
+  @visibility("read")
+  collectionid: string;
+
+  /**
+   * The ETag value to implement optimistic concurrency.
+   */
+  @visibility("read")
+  eTag?: string;
+
+  /**
+   * Status of the resource.
+   */
+  @maxLength(100)
+  status?: string;
+
+  /**
+   * Date-time when resource was created, sample format: yyyy-MM-ddTHH:mm:ssZ.
+   */
+  @visibility("read")
+  // FIXME: (utcDateTime) Please double check that this is the correct type for your scenario.
+  createdDateTime?: utcDateTime;
+
+  /**
+   * Date-time when resource was last modified, sample format: yyyy-MM-ddTHH:mm:ssZ.
+   */
+  @visibility("read")
+  // FIXME: (utcDateTime) Please double check that this is the correct type for your scenario.
+  modifiedDateTime?: utcDateTime;
+
+  /**
+   * Source of the resource.
+   */
+  @maxLength(100)
+  @minLength(2)
+  source?: string;
+
+  /**
+   * Name to identify resource.
+   */
+  @maxLength(100)
+  name?: string;
+
+  /**
+   * Textual description of the resource.
+   */
+  @maxLength(500)
+  description?: string;
+
+  /**
+   * Created by user/tenant id.
+   */
+  @visibility("read")
+  createdBy?: string;
+
+  /**
+   * Modified by user/tenant id.
+   */
+  @visibility("read")
+  modifiedBy?: string;
+
+  /**
+   * A collection of key value pairs that belongs to the resource.
+   * Each pair must not have a key greater than 50 characters
+   * and must not have a value greater than 150 characters.
+   * Note: A maximum of 25 key value pairs can be provided for a resource and only
+   * string,
+   * numeral and datetime (yyyy-MM-ddTHH:mm:ssZ) values are supported.
+   */
+  properties?: Record<unknown>;
+}
 /**
  * Type of relationship.
  */
+@resource("File1")
+model File1 {
+  /**
+   * FilePath.
+   */
+  @key
+  @minLength(1)
+  filePath: string;
+}
 union RelationshipType {
   string,
   DerivedFrom: "DerivedFrom",

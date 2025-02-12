@@ -45,6 +45,96 @@
   },
   "tags": [],
   "paths": {
+    "/File1/{filePath}:download1": {
+      "post": {
+        "operationId": "FileOperations_Download1",
+        "description": "Downloads and returns file Stream as response for the given input filePath.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "filePath",
+            "in": "path",
+            "description": "FilePath.",
+            "required": true,
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "name": "accept",
+            "in": "header",
+            "description": "Accept header",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "application/json, application/octet-stream"
+            ],
+            "x-ms-enum": {
+              "modelAsString": false
+            }
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityRequestId"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityFirstSent"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "description": "request.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      }
+    },
     "/catalog1": {
       "get": {
         "operationId": "CatalogsOperations_List1",
@@ -54,7 +144,97 @@
             "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
           },
           {
-            "$ref": "#/parameters/Azure.Core.ClientRequestIdHeader"
+            "name": "names",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "propertyFilters",
+            "in": "query",
+            "description": "Filters on key-value pairs within the Properties object.\neg. \"{testKey} eq {testValue}\".",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "statuses",
+            "in": "query",
+            "description": "Statuses of the resource.",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "Ids of the resource.",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "minCreatedDateTime",
+            "in": "query",
+            "description": "Minimum creation date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "maxCreatedDateTime",
+            "in": "query",
+            "description": "Maximum creation date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "minLastModifiedDateTime",
+            "in": "query",
+            "description": "Minimum last modified date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "maxLastModifiedDateTime",
+            "in": "query",
+            "description": "Maximum last modified date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "maxPageSize",
+            "in": "query",
+            "description": "Maximum number of items needed (inclusive).\nMinimum = 10, Maximum = 1000, Default value = 50.",
+            "required": false,
+            "type": "integer",
+            "format": "int32",
+            "default": 50,
+            "minimum": 10,
+            "maximum": 1000
+          },
+          {
+            "name": "skipToken",
+            "in": "query",
+            "description": "Skip token for getting next set of results.",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
@@ -62,13 +242,6 @@
             "description": "The request has succeeded.",
             "schema": {
               "$ref": "#/definitions/PagedCatalog1"
-            },
-            "headers": {
-              "x-ms-client-request-id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "An opaque, globally-unique, client-generated string identifier for the request."
-              }
             }
           },
           "default": {
@@ -89,10 +262,595 @@
         }
       }
     },
+    "/catalog1/{catalogid}": {
+      "get": {
+        "operationId": "CatalogsOperations_List2",
+        "description": "Resource read operation template.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "schema": {
+              "$ref": "#/definitions/Catalog1"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "CatalogsOperations_CatalogUpdate1",
+        "description": "Returns a paginated list of Catalog resources.",
+        "consumes": [
+          "application/merge-patch+json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityRequestId"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityFirstSent"
+          },
+          {
+            "name": "resource",
+            "in": "body",
+            "description": "The resource instance.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Catalog1CreateOrUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "schema": {
+              "$ref": "#/definitions/Catalog1"
+            },
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "schema": {
+              "$ref": "#/definitions/Catalog1"
+            },
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "CatalogsOperations_Delete1",
+        "description": "Resource delete operation template.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityRequestId"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityFirstSent"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "There is no content to send for this request, but the headers may be useful. ",
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalog1/{catalogid}/collection1": {
+      "get": {
+        "operationId": "CollectionsOperations_List3",
+        "description": "Returns a paginated list of Collection resources.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "names",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "propertyFilters",
+            "in": "query",
+            "description": "Filters on key-value pairs within the Properties object.\neg. \"{testKey} eq {testValue}\".",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "statuses",
+            "in": "query",
+            "description": "Statuses of the resource.",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "Ids of the resource.",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "minCreatedDateTime",
+            "in": "query",
+            "description": "Minimum creation date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "maxCreatedDateTime",
+            "in": "query",
+            "description": "Maximum creation date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "minLastModifiedDateTime",
+            "in": "query",
+            "description": "Minimum last modified date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "maxLastModifiedDateTime",
+            "in": "query",
+            "description": "Maximum last modified date of resource (inclusive).",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "maxPageSize",
+            "in": "query",
+            "description": "Maximum number of items needed (inclusive).\nMinimum = 10, Maximum = 1000, Default value = 50.",
+            "required": false,
+            "type": "integer",
+            "format": "int32",
+            "default": 50,
+            "minimum": 10,
+            "maximum": 1000
+          },
+          {
+            "name": "skipToken",
+            "in": "query",
+            "description": "Skip token for getting next set of results.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "schema": {
+              "$ref": "#/definitions/PagedCollection1"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "nextLink"
+        }
+      }
+    },
+    "/catalog1/{catalogid}/collection1/{collectionid}": {
+      "get": {
+        "operationId": "CollectionsOperations_List4",
+        "description": "Resource read operation template.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "collectionid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "schema": {
+              "$ref": "#/definitions/Collection1"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "CollectionsOperations_CreateOrUpdate2",
+        "description": "Create or update operation template.",
+        "consumes": [
+          "application/merge-patch+json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "collectionid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityRequestId"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityFirstSent"
+          },
+          {
+            "name": "resource",
+            "in": "body",
+            "description": "The resource instance.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Collection1CreateOrUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "schema": {
+              "$ref": "#/definitions/Collection1"
+            },
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The request has succeeded and a new resource has been created as a result.",
+            "schema": {
+              "$ref": "#/definitions/Collection1"
+            },
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "CollectionsOperations_Delete2",
+        "description": "Resource delete operation template.",
+        "parameters": [
+          {
+            "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
+          },
+          {
+            "name": "catalogid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "collectionid",
+            "in": "path",
+            "description": "Unique resource ID.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityRequestId"
+          },
+          {
+            "$ref": "#/parameters/Azure.Core.RepeatabilityRequestHeaders.repeatabilityFirstSent"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "There is no content to send for this request, but the headers may be useful. ",
+            "headers": {
+              "Repeatability-Result": {
+                "type": "string",
+                "description": "Indicates whether the repeatable request was accepted or rejected.",
+                "enum": [
+                  "accepted",
+                  "rejected"
+                ],
+                "x-ms-enum": {
+                  "name": "RepeatabilityResult",
+                  "modelAsString": false,
+                  "values": [
+                    {
+                      "name": "accepted",
+                      "value": "accepted",
+                      "description": "If the request was accepted and the server guarantees that the server state reflects a single execution of the operation."
+                    },
+                    {
+                      "name": "rejected",
+                      "value": "rejected",
+                      "description": "If the request was rejected because the combination of Repeatability-First-Sent and Repeatability-Request-ID were invalid\nor because the Repeatability-First-Sent value was outside the range of values held by the server."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Azure.Core.Foundations.ErrorResponse"
+            },
+            "headers": {
+              "x-ms-error-code": {
+                "type": "string",
+                "description": "String error code indicating what went wrong."
+              }
+            }
+          }
+        }
+      }
+    },
     "/catalogs": {
       "get": {
         "operationId": "CatalogsOperations_List",
-        "description": "Returns a paginated list of Catalog resources.",
+        "description": "The most basic operation.",
         "parameters": [
           {
             "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
@@ -333,7 +1091,7 @@
     "/catalogs/{catalogId}/collections": {
       "get": {
         "operationId": "CollectionsOperations_List",
-        "description": "Returns a paginated list of Collection resources.",
+        "description": "The most basic operation.",
         "parameters": [
           {
             "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
@@ -1290,7 +2048,7 @@
     "/file:download": {
       "post": {
         "operationId": "FileOperations_Download",
-        "description": "Downloads and returns file Stream as response for the given input filePath.",
+        "description": "The most basic operation.",
         "parameters": [
           {
             "$ref": "#/parameters/Azure.Core.Foundations.ApiVersionParameter"
@@ -1818,14 +2576,115 @@
     "Catalog1": {
       "type": "object",
       "properties": {
-        "id": {
+        "links": {
+          "type": "array",
+          "description": "Id",
+          "items": {
+            "$ref": "#/definitions/Link"
+          },
+          "x-ms-identifiers": []
+        },
+        "catalogid": {
           "type": "string",
-          "description": "Id"
+          "description": "Unique resource ID.",
+          "readOnly": true
+        },
+        "eTag": {
+          "type": "string",
+          "description": "The ETag value to implement optimistic concurrency.",
+          "readOnly": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the resource.",
+          "maxLength": 100
+        },
+        "createdDateTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date-time when resource was created, sample format: yyyy-MM-ddTHH:mm:ssZ.",
+          "readOnly": true
+        },
+        "modifiedDateTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date-time when resource was last modified, sample format: yyyy-MM-ddTHH:mm:ssZ.",
+          "readOnly": true
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the resource.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Name to identify resource.",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Textual description of the resource.",
+          "maxLength": 500
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Created by user/tenant id.",
+          "readOnly": true
+        },
+        "modifiedBy": {
+          "type": "string",
+          "description": "Modified by user/tenant id.",
+          "readOnly": true
+        },
+        "properties": {
+          "type": "object",
+          "description": "A collection of key value pairs that belongs to the resource.\nEach pair must not have a key greater than 50 characters\nand must not have a value greater than 150 characters.\nNote: A maximum of 25 key value pairs can be provided for a resource and only\nstring,\nnumeral and datetime (yyyy-MM-ddTHH:mm:ssZ) values are supported.",
+          "additionalProperties": {}
         }
       },
       "required": [
-        "id"
+        "catalogid"
       ]
+    },
+    "Catalog1CreateOrUpdate": {
+      "type": "object",
+      "properties": {
+        "links": {
+          "type": "array",
+          "description": "Id",
+          "items": {
+            "$ref": "#/definitions/Link"
+          },
+          "x-ms-identifiers": []
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the resource.",
+          "maxLength": 100
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the resource.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Name to identify resource.",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Textual description of the resource.",
+          "maxLength": 500
+        },
+        "properties": {
+          "type": "object",
+          "description": "A collection of key value pairs that belongs to the resource.\nEach pair must not have a key greater than 50 characters\nand must not have a value greater than 150 characters.\nNote: A maximum of 25 key value pairs can be provided for a resource and only\nstring,\nnumeral and datetime (yyyy-MM-ddTHH:mm:ssZ) values are supported.",
+          "additionalProperties": {}
+        }
+      }
     },
     "CatalogCollection": {
       "type": "object",
@@ -1947,6 +2806,136 @@
       "required": [
         "schemaId"
       ]
+    },
+    "Collection1": {
+      "type": "object",
+      "properties": {
+        "schemaId": {
+          "type": "string",
+          "description": "Schema Foreign Key.",
+          "minLength": 1
+        },
+        "catalogId": {
+          "type": "string",
+          "description": "CatalogId.",
+          "readOnly": true
+        },
+        "links": {
+          "type": "array",
+          "description": "Links for referencing other objects.",
+          "items": {
+            "$ref": "#/definitions/Link"
+          },
+          "x-ms-identifiers": []
+        },
+        "collectionid": {
+          "type": "string",
+          "description": "Unique resource ID.",
+          "readOnly": true
+        },
+        "eTag": {
+          "type": "string",
+          "description": "The ETag value to implement optimistic concurrency.",
+          "readOnly": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the resource.",
+          "maxLength": 100
+        },
+        "createdDateTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date-time when resource was created, sample format: yyyy-MM-ddTHH:mm:ssZ.",
+          "readOnly": true
+        },
+        "modifiedDateTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date-time when resource was last modified, sample format: yyyy-MM-ddTHH:mm:ssZ.",
+          "readOnly": true
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the resource.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Name to identify resource.",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Textual description of the resource.",
+          "maxLength": 500
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Created by user/tenant id.",
+          "readOnly": true
+        },
+        "modifiedBy": {
+          "type": "string",
+          "description": "Modified by user/tenant id.",
+          "readOnly": true
+        },
+        "properties": {
+          "type": "object",
+          "description": "A collection of key value pairs that belongs to the resource.\nEach pair must not have a key greater than 50 characters\nand must not have a value greater than 150 characters.\nNote: A maximum of 25 key value pairs can be provided for a resource and only\nstring,\nnumeral and datetime (yyyy-MM-ddTHH:mm:ssZ) values are supported.",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "schemaId",
+        "catalogId",
+        "collectionid"
+      ]
+    },
+    "Collection1CreateOrUpdate": {
+      "type": "object",
+      "properties": {
+        "schemaId": {
+          "type": "string",
+          "description": "Schema Foreign Key.",
+          "minLength": 1
+        },
+        "links": {
+          "type": "array",
+          "description": "Links for referencing other objects.",
+          "items": {
+            "$ref": "#/definitions/Link"
+          },
+          "x-ms-identifiers": []
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the resource.",
+          "maxLength": 100
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the resource.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Name to identify resource.",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Textual description of the resource.",
+          "maxLength": 500
+        },
+        "properties": {
+          "type": "object",
+          "description": "A collection of key value pairs that belongs to the resource.\nEach pair must not have a key greater than 50 characters\nand must not have a value greater than 150 characters.\nNote: A maximum of 25 key value pairs can be provided for a resource and only\nstring,\nnumeral and datetime (yyyy-MM-ddTHH:mm:ssZ) values are supported.",
+          "additionalProperties": {}
+        }
+      }
     },
     "CollectionListResponse": {
       "type": "object",
@@ -2218,6 +3207,20 @@
     "File": {
       "type": "object",
       "description": "File.",
+      "properties": {
+        "filePath": {
+          "type": "string",
+          "description": "FilePath.",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "filePath"
+      ]
+    },
+    "File1": {
+      "type": "object",
+      "description": "Type of relationship.",
       "properties": {
         "filePath": {
           "type": "string",
@@ -2705,7 +3708,30 @@
           "description": "The Catalog1 items on this page",
           "items": {
             "$ref": "#/definitions/Catalog1"
-          }
+          },
+          "x-ms-identifiers": []
+        },
+        "nextLink": {
+          "type": "string",
+          "format": "uri",
+          "description": "The link to the next page of items"
+        }
+      },
+      "required": [
+        "value"
+      ]
+    },
+    "PagedCollection1": {
+      "type": "object",
+      "description": "Paged collection of Collection1 items",
+      "properties": {
+        "value": {
+          "type": "array",
+          "description": "The Collection1 items on this page",
+          "items": {
+            "$ref": "#/definitions/Collection1"
+          },
+          "x-ms-identifiers": []
         },
         "nextLink": {
           "type": "string",
@@ -2773,7 +3799,6 @@
     },
     "RelationshipType": {
       "type": "string",
-      "description": "Type of relationship.",
       "enum": [
         "DerivedFrom",
         "Child",
@@ -3742,16 +4767,6 @@
     }
   },
   "parameters": {
-    "Azure.Core.ClientRequestIdHeader": {
-      "name": "x-ms-client-request-id",
-      "in": "header",
-      "description": "An opaque, globally-unique, client-generated string identifier for the request.",
-      "required": false,
-      "type": "string",
-      "format": "uuid",
-      "x-ms-parameter-location": "method",
-      "x-ms-client-name": "clientRequestId"
-    },
     "Azure.Core.Foundations.ApiVersionParameter": {
       "name": "api-version",
       "in": "query",
@@ -3761,6 +4776,25 @@
       "minLength": 1,
       "x-ms-parameter-location": "method",
       "x-ms-client-name": "apiVersion"
+    },
+    "Azure.Core.RepeatabilityRequestHeaders.repeatabilityFirstSent": {
+      "name": "Repeatability-First-Sent",
+      "in": "header",
+      "description": "Specifies the date and time at which the request was first created.",
+      "required": false,
+      "type": "string",
+      "format": "date-time",
+      "x-ms-parameter-location": "method",
+      "x-ms-client-name": "repeatabilityFirstSent"
+    },
+    "Azure.Core.RepeatabilityRequestHeaders.repeatabilityRequestId": {
+      "name": "Repeatability-Request-ID",
+      "in": "header",
+      "description": "An opaque, globally-unique, client-generated string identifier for the request.",
+      "required": false,
+      "type": "string",
+      "x-ms-parameter-location": "method",
+      "x-ms-client-name": "repeatabilityRequestId"
     }
   }
 }

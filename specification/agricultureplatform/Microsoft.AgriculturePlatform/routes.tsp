@@ -9,19 +9,121 @@ using Azure.Core.Traits;
 
 namespace AzureAgFoodPlatformDataPlaneService;
 
-alias ServiceTraits = SupportsRepeatableRequests &
-  SupportsConditionalRequests &
-  SupportsClientRequestId;
+alias ServiceTraits = SupportsRepeatableRequests;
 
 alias Operations = Azure.Core.ResourceOperations<ServiceTraits>;
 
+alias MyQueryParams = QueryParametersTrait<
+  {
+    @query(#{ name: "names", explode: true })
+    names?: string[];
+
+    /**
+     * Filters on key-value pairs within the Properties object.
+     * eg. "{testKey} eq {testValue}".
+     */
+    @query(#{ name: "propertyFilters", explode: true })
+    propertyFilters?: string[];
+
+    /**
+     * Statuses of the resource.
+     */
+    @query(#{ name: "statuses", explode: true })
+    statuses?: string[];
+
+    /**
+     * Ids of the resource.
+     */
+    @query(#{ name: "ids", explode: true })
+    ids?: string[];
+
+    /**
+     * Minimum creation date of resource (inclusive).
+     */
+    @query("minCreatedDateTime")
+    minCreatedDateTime?: utcDateTime;
+
+    /**
+     * Maximum creation date of resource (inclusive).
+     */
+    @query("maxCreatedDateTime")
+    maxCreatedDateTime?: utcDateTime;
+
+    /**
+     * Minimum last modified date of resource (inclusive).
+     */
+    @query("minLastModifiedDateTime")
+    minLastModifiedDateTime?: utcDateTime;
+
+    /**
+     * Maximum last modified date of resource (inclusive).
+     */
+    @query("maxLastModifiedDateTime")
+    maxLastModifiedDateTime?: utcDateTime;
+
+    /**
+     * Maximum number of items needed (inclusive).
+     * Minimum = 10, Maximum = 1000, Default value = 50.
+     */
+    @maxValue(1000)
+    @minValue(10)
+    @query("maxPageSize")
+    maxPageSize?: int32 = 50;
+
+    /**
+     * Skip token for getting next set of results.
+     */
+    @query("skipToken")
+    skipToken?: string;
+  },
+  TraitContext.Read | TraitContext.List
+>;
 interface CatalogsOperations {
   @doc("Catalog")
-  list1 is Operations.ResourceList<Catalog1>;
+  list1 is Operations.ResourceList<Catalog1, MyQueryParams>;
 
   /**
    * Returns a paginated list of Catalog resources.
    */
+  CatalogUpdate1 is Operations.ResourceCreateOrUpdate<
+    Catalog1,
+    {
+      /**
+       * Id of the Catalog resource.
+       */
+      @path
+      catalogId: string;
+
+      /**
+       * Catalog resource payload to create or update.
+       */
+      @body
+      catalog: Catalog;
+    }
+  >;
+
+  list2 is Operations.ResourceRead<
+    Catalog1,
+    {
+      /**
+       * Id of the Catalog.
+       */
+      @path
+      catalogId: string;
+    }
+  >;
+
+  delete1 is Operations.ResourceDelete<
+    Catalog1,
+    {
+      /**
+       * Id of Catalog to be deleted.
+       */
+      @path
+      catalogId: string;
+    }
+  >;
+
   @route("/catalogs")
   @get
   list is Azure.Core.Foundations.Operation<
@@ -152,6 +254,65 @@ interface CollectionsOperations {
   /**
    * Returns a paginated list of Collection resources.
    */
+  list3 is Operations.ResourceList<Collection1, MyQueryParams>;
+
+  list4 is Operations.ResourceRead<
+    Collection1,
+    {
+      /**
+       * Id of the Catalog.
+       */
+      @path
+      catalogId: string;
+
+      /**
+       * Id of the Collection.
+       */
+      @path
+      collectionId: string;
+    }
+  >;
+
+  createOrUpdate2 is Operations.ResourceCreateOrUpdate<
+    Collection1,
+    {
+      /**
+       * Id of the Collection resource.
+       */
+      @path
+      collectionId: string;
+
+      /**
+       * Id of the Catalog resource.
+       */
+      @path
+      catalogId: string;
+
+      /**
+       * Collection resource payload to create or update.
+       */
+      @body
+      collection: Collection;
+    }
+  >;
+
+  delete2 is Operations.ResourceDelete<
+    Collection1,
+    {
+      /**
+       * Id of Catalog.
+       */
+      @path
+      catalogId: string;
+
+      /**
+       * Id of Collection to be deleted.
+       */
+      @path
+      collectionId: string;
+    }
+  >;
+
   @route("/catalogs/{catalogId}/collections")
   @get
   list is Azure.Core.Foundations.Operation<
@@ -306,6 +467,8 @@ interface FileOperations {
   /**
    * Deletes file.
    */
+
+  //delete1 is Operations.ResourceAction<File1, {}>;
   @route("/file:delete")
   @post
   delete is Azure.Core.Foundations.Operation<File, void>;
@@ -313,6 +476,24 @@ interface FileOperations {
   /**
    * Downloads and returns file Stream as response for the given input filePath.
    */
+  download1 is Operations.ResourceAction<
+    File1,
+    {
+      /**
+       * request.
+       */
+      @body
+      request: File;
+
+      /**
+       * Accept header
+       */
+      @header
+      accept: "application/json, application/octet-stream";
+    },
+    {}
+  >;
+
   @route("/file:download")
   @post
   download is Azure.Core.Foundations.Operation<
